@@ -1,5 +1,6 @@
 import http from 'node:http'
 import { Json } from './middleware/json.js'
+import { routes } from './routes.js'
 
 // POST - /tasks
 // GET - /tasks
@@ -7,34 +8,26 @@ import { Json } from './middleware/json.js'
 // DELETE - /tasks/:id
 // PATCH - /tasks/:id/complete
 
-const tasks = []
-
 const server = http.createServer(async(req, res) => {
   const {method, url} = req
 
   await Json(req, res)
 
-  if(method === 'GET' && url === '/tasks') {
-    return res.end(JSON.stringify(tasks))
+  const route = routes.find(route => {
+    return route.method === method && route.path.test(url)
+  })
+
+  if(route) {
+    const routeParams = req.url.match(route.path)
+
+    // CRIAMOS A NOVA CHAVE EM REQ CHAMADA PARAMS
+    req.params = {...routeParams.groups}
+
+    return route.handler(req, res)
   }
 
-  if(method === 'POST' && url === '/tasks') {
 
-    const {title, descrpition, completed_at, created_at, updated_at} = req.body
-
-    tasks.push({
-      id: 1,
-      title,
-      descrpition,
-      completed_at,
-      created_at: '19/01/2024',
-      updated_at
-    })
-
-    return res.end('Criação de tasks')
-  }
-
-  return res.end("hello world")
+  return res.writeHead(404).end()
 })
 
 server.listen(3333)
