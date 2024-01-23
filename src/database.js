@@ -46,4 +46,24 @@ export class Database {
       this.#persist()
     }
   }
+
+  update(table, id, data) {
+    const rowIndex = this.#database[table].findIndex(row => row.id === id)
+
+    if(rowIndex > -1) {
+      // retorna -1 caso seja false
+      this.#database[table][rowIndex] = {id, ...data}
+      this.#persist()
+    }
+  }
+
+  patch(table, id, completed_at) {
+    const rowIndex = this.#database[table].findIndex(row => row.id === id)
+
+    if(rowIndex > -1) {
+      // retorna -1 caso seja false
+      this.#database[table][rowIndex] = {id, ...completed_at}
+      this.#persist()
+    }
+  }
 }

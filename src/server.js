@@ -20,7 +20,7 @@ const server = http.createServer(async(req, res) => {
   if(route) {
     const routeParams = req.url.match(route.path)
 
-    // CRIAMOS A NOVA CHAVE EM REQ CHAMADA PARAMS
+    // CRIA-SE UMA NOVA CHAVE EM REQ, CHAMADA PARAMS
     req.params = {...routeParams.groups}
 
     return route.handler(req, res)
