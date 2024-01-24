@@ -78,16 +78,15 @@ export const routes = [
       const [registeredTasks] = database.select('tasks', id)
 
       if(!registeredTasks) {
-        return res.writeHead(204).end(JSON.stringify({message: 'title and description are required'}))
+        return res.writeHead(204).end()
       }
 
       const taskCompleted = !!registeredTasks.completed_at // converts truthy/falsy to boolean
-      const completed_at = taskCompleted ? newDate : null
+      const completed_at = taskCompleted ? null : newDate
 
-      database.update('tasks', id, completed_at)
-      console.log(taskCompleted, 'aqui o item')
-      console.log(completed_at, 'aqui o item')
-
+      database.update('tasks', id, {
+        completed_at
+      })
 
       return res.writeHead(204).end()
     }
