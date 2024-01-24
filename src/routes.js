@@ -4,8 +4,8 @@ import { buildRoutePath } from './utils/build-route-path.js'
 
 const database = new Database()
 
-const newDate = new Date().toISOString()
-const currentDate = newDate.split('T').join('@').split('.')[0]
+const newDate = new Date()
+
 
 export const routes = [
   {
@@ -21,14 +21,19 @@ export const routes = [
     method: 'POST',
     path: buildRoutePath('/tasks'),
     handler: (req, res) => {
-      const {title, description, completed_at} = req.body
+      const {title, description } = req.body
+
+      if(!title || !description) {
+        return res.writeHead(400).end(JSON.stringify({message: 'title and description are required'}))
+      }
 
       const task = {
         id: randomUUID(),
         title,
         description,
-        completed_at,
-        created_at: currentDate,
+        completed_at: null,
+        created_at: newDate,
+        updated_at: newDate
       }
 
       database.insert('tasks', task)
@@ -41,14 +46,25 @@ export const routes = [
     path: buildRoutePath('/tasks/:id'),
     handler: (req, res) => {
       const { id } = req.params
-      const { title, description, completed_at } = req.body
+      const {title, description } = req.body
 
-      database.update('tasks', id, {
-        title,
-        description,
-        completed_at,
-        updated_at: currentDate
-      })
+      if(!title || !description) {
+        return res.writeHead(204).end(JSON.stringify({message: 'title and description are required'}))
+      }
+
+      const [registeredTasks] = database.select('tasks', id)
+
+      if(!registeredTasks) {
+        return res.writeHead(404).end(JSON.stringify({message: 'cannot find current id'}))
+      }
+
+      const updatedTasks = {
+        title: title ?? registeredTasks.title,
+        description: description ?? registeredTasks.description,
+        updated_at: newDate
+      }
+
+      database.update('tasks', id, updatedTasks)
 
       return res.writeHead(204).end()
     }
@@ -58,9 +74,20 @@ export const routes = [
     path: buildRoutePath('/tasks/:id'),
     handler: (req, res) => {
       const { id } = req.params
-      // const { completed_at } = req.body
+
+      const [registeredTasks] = database.select('tasks', id)
+
+      if(!registeredTasks) {
+        return res.writeHead(204).end(JSON.stringify({message: 'title and description are required'}))
+      }
+
+      const taskCompleted = !!registeredTasks.completed_at // converts truthy/falsy to boolean
+      const completed_at = taskCompleted ? newDate : null
 
       database.update('tasks', id, completed_at)
+      console.log(taskCompleted, 'aqui o item')
+      console.log(completed_at, 'aqui o item')
+
 
       return res.writeHead(204).end()
     }
